@@ -1,7 +1,7 @@
 package client
 
 import (
-	"git.moresec.cn/zhangtian/ktmt"
+	"github.com/eleztian/ktmt"
 	"net"
 	"time"
 )

@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"git.moresec.cn/zhangtian/ktmt"
+	"github.com/eleztian/ktmt"
 )
 
 type server struct {
@@ -65,15 +65,16 @@ func (s *server) Open(ctx context.Context) error {
 					return
 				}
 				for pkt := range session.In() {
-					inMessages <- pkt
+					select {
+					case inMessages <- pkt:
+					case <-ctx.Done():
+					}
 				}
 			}()
 		}
 
 		s.sessions.Range(func(key, value interface{}) bool {
-			s.sessions.Delete(key)
-			session := value.(ktmt.SessionLayer)
-			session.Close()
+			s.delSession(key.(string))
 			return true
 		})
 
@@ -186,6 +187,7 @@ func (s *server) newSession(ctx context.Context, conn net.Conn) (ktmt.SessionLay
 				s.delSession(id)
 			},
 		})
+
 		if err != nil {
 			_ = conn.Close()
 			if !ktmt.IsNetClosedErr(err) {
@@ -193,6 +195,9 @@ func (s *server) newSession(ctx context.Context, conn net.Conn) (ktmt.SessionLay
 			}
 
 			return nil
+		}
+		if mc.CleanSession() {
+			s.sessions.Delete(mc.ID())
 		}
 		return mc
 	}, false)
@@ -250,11 +255,16 @@ func (s *server) getSession(id string) ktmt.SessionLayer {
 }
 
 func (s *server) delSession(id string) {
-	s.sessions.Delete(id)
-	if s.options.OnOfflineFunc != nil {
-		err := s.options.OnOfflineFunc(id)
-		if err != nil {
-			ktmt.ERROR.Printf("[APP] delSession %s OnOfflineFunc %v", id, err)
+	v, ok := s.sessions.Load(id)
+	if ok {
+		s.sessions.Delete(id)
+		v.(ktmt.SessionLayer).Close()
+
+		if s.options.OnOfflineFunc != nil {
+			err := s.options.OnOfflineFunc(id)
+			if err != nil {
+				ktmt.ERROR.Printf("[APP] delSession %s OnOfflineFunc %v", id, err)
+			}
 		}
 	}
 

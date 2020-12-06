@@ -3,9 +3,9 @@ package client
 import (
 	"context"
 	"errors"
-	"git.moresec.cn/zhangtian/ktmt"
-	"git.moresec.cn/zhangtian/ktmt/mock"
-	"git.moresec.cn/zhangtian/ktmt/packets"
+	"github.com/eleztian/ktmt"
+	"github.com/eleztian/ktmt/mock"
+	"github.com/eleztian/ktmt/packets"
 	"net"
 	"sync"
 	"testing"

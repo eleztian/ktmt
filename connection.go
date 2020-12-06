@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"git.moresec.cn/zhangtian/ktmt/packets"
+	"github.com/eleztian/ktmt/packets"
 )
 
 type OnCloseCallback func(id string)
@@ -232,7 +232,6 @@ func (c *connKeep) loop(ctx context.Context, connFactory func(ctx context.Contex
 			if c.status.isClosed() {
 				break
 			}
-			// 指数退避
 			conn = connFactory(c.ctx)
 		}
 	}()

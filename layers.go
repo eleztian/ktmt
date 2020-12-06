@@ -3,7 +3,7 @@ package ktmt
 import (
 	"context"
 	"encoding/json"
-	"git.moresec.cn/zhangtian/ktmt/packets"
+	"github.com/eleztian/ktmt/packets"
 	"time"
 )
 

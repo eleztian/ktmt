@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"git.moresec.cn/zhangtian/ktmt/packets"
+	"github.com/eleztian/ktmt/packets"
 )
 
 type Message interface {

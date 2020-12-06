@@ -2,8 +2,8 @@ package server
 
 import (
 	"context"
-	"git.moresec.cn/zhangtian/ktmt"
-	"git.moresec.cn/zhangtian/ktmt/mock"
+	"github.com/eleztian/ktmt"
+	"github.com/eleztian/ktmt/mock"
 	"net"
 	"sync"
 	"testing"

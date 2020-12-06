@@ -4,7 +4,7 @@ import (
 	"container/list"
 	"sync"
 
-	"git.moresec.cn/zhangtian/ktmt/packets"
+	"github.com/eleztian/ktmt/packets"
 )
 
 type Customer interface {

@@ -2,11 +2,9 @@ package ktmt
 
 import (
 	"context"
-	"fmt"
-	"os"
 	"sync"
 
-	"git.moresec.cn/zhangtian/ktmt/packets"
+	"github.com/eleztian/ktmt/packets"
 )
 
 type sessionLayer struct {
@@ -19,30 +17,20 @@ type sessionLayer struct {
 	ids *MessageIds
 	in  chan Message
 	out chan *PacketAndToken
-
-	store Store
 }
 
 func NewSession(ctx context.Context, cl ConnectionLayer) (SessionLayer, error) {
-	sPath := fmt.Sprintf("store/%s", cl.ID())
-	_ = os.MkdirAll(sPath, 0755)
-
 	res := &sessionLayer{
-		cl:    cl,
-		ids:   NewMessageIds(),
-		in:    make(chan Message),
-		out:   make(chan *PacketAndToken, 10),
-		store: NewFileStore(sPath),
+		cl:  cl,
+		ids: NewMessageIds(),
+		in:  make(chan Message),
+		out: make(chan *PacketAndToken, 10),
 	}
 
 	ctx, res.cancel = context.WithCancel(ctx)
 
 	res.wg = &sync.WaitGroup{}
-	res.wg.Add(3)
-	go func() {
-		defer res.wg.Done()
-		res.readFromStoreWithWrite(ctx)
-	}()
+	res.wg.Add(2)
 
 	go func() {
 		defer res.wg.Done()
@@ -57,24 +45,6 @@ func NewSession(ctx context.Context, cl ConnectionLayer) (SessionLayer, error) {
 	return res, nil
 }
 
-func (s *sessionLayer) readFromStoreWithWrite(ctx context.Context) {
-	keys := s.store.All()
-
-	for _, key := range keys {
-		if IsKeyOutbound(key) {
-			pkt := s.store.Get(key)
-			if pkt != nil {
-				select {
-				case <-ctx.Done():
-					return
-				case s.out <- &PacketAndToken{P: pkt}:
-				}
-			}
-		}
-
-	}
-}
-
 func (s *sessionLayer) UpdateConnectLayer(ctx context.Context, cl ConnectionLayer) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -84,23 +54,22 @@ func (s *sessionLayer) UpdateConnectLayer(ctx context.Context, cl ConnectionLaye
 		s.cl.Close()
 		s.wg.Wait()
 	}
-	s.cl = cl
 
-	ctx, s.cancel = context.WithCancel(ctx)
-	s.wg = &sync.WaitGroup{}
-	s.wg.Add(3)
+	ctx, cancel := context.WithCancel(ctx)
+	wg := &sync.WaitGroup{}
+	wg.Add(2)
 	go func() {
-		defer s.wg.Done()
-		s.readFromStoreWithWrite(ctx)
-	}()
-	go func() {
-		defer s.wg.Done()
+		defer wg.Done()
 		read(ctx, s.in, s.ids, cl)
 	}()
 	go func() {
-		defer s.wg.Done()
+		defer wg.Done()
 		write(ctx, s.out, cl)
 	}()
+
+	s.cancel = cancel
+	s.wg = wg
+	s.cl = cl
 
 	return nil
 }
@@ -150,8 +119,6 @@ func (s *sessionLayer) Close() {
 		return
 	}
 	s.closed = true
-
-	s.store.Close()
 
 	if s.cl != nil {
 		s.cl.Close()

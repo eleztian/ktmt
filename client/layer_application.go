@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 	"errors"
-	"git.moresec.cn/zhangtian/ktmt"
+	"github.com/eleztian/ktmt"
 	"sync"
 	"time"
 )

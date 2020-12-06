@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"git.moresec.cn/zhangtian/ktmt"
-	"git.moresec.cn/zhangtian/ktmt/server"
+	"github.com/eleztian/ktmt"
+	"github.com/eleztian/ktmt/server"
 	"net"
 	"time"
 )

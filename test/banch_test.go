@@ -3,9 +3,9 @@ package test
 import (
 	"context"
 	"fmt"
-	"git.moresec.cn/zhangtian/ktmt"
-	"git.moresec.cn/zhangtian/ktmt/client"
-	"git.moresec.cn/zhangtian/ktmt/server"
+	"github.com/eleztian/ktmt"
+	"github.com/eleztian/ktmt/client"
+	"github.com/eleztian/ktmt/server"
 	"net"
 	"testing"
 	"time"
